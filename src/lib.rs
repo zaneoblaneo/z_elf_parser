@@ -430,15 +430,9 @@ mod tests {
     use std::fs::{File, Metadata};
     use std::collections::{VecDeque, HashMap};
     use crate::elf::*;
-    use crate::vec_deque_expansion::*;
-
-    pub fn pri(mut l: &Stdout, s: &str) {
-        let out = format!("  {}:{}:{} :: [+] : {}",
-                          file!(), 
-                          line!(), 
-                          column!(), 
-                          s);
-        let _ = writeln!(l, "{}", out.clone());
+    pub fn pri(mut stdout: &Stdout, s: &str, f: &str, l: u32, c: u32) {
+        let out = format!("  {}:{}:{} :: [+] : {}", f, l, c, s);
+        let _ = writeln!(stdout, "{}", out.clone());
     }
 
     fn get_str_from_index(d: &[u8], indx: usize) -> Option<&str>{
@@ -468,33 +462,32 @@ mod tests {
             .map_err(|_x| usize::MAX).unwrap();
         let mut bytes: VecDeque<u8> = VecDeque::<u8>::from(master_bytes.clone());
 		
-        pri(&mut lock, &format!("Successfully read {} bytes!", bin_size));
+        pri(&mut lock, &format!("Successfully read {} bytes!", bin_size), file!(), line!(), column!());
         let elf_header: ElfHeader = parse_elf_header(&mut bytes).unwrap(); 
-        pri(&mut lock, &format!("{0:#x?}", elf_header));
+        pri(&mut lock, &format!("{0:#x?}", elf_header), file!(), line!(), column!());
         let mut program_headers: Vec<ProgramHeader> = 
             Vec::<ProgramHeader>::with_capacity(elf_header.e_phnum as usize);
         program_headers.resize(elf_header.e_phnum as usize, ProgramHeader::default());
-        pri(&mut lock, &format!("program has: {:#x} Program Headers.",
-                                program_headers.len()));
+        pri(&mut lock, &format!("program has: {:#x} Program Headers.", program_headers.len()), file!(), line!(), column!());
         let mut bytes: VecDeque<u8> = master_bytes.clone()
             .drain(elf_header.e_phoff as usize..).collect::<VecDeque<u8>>();
         for i in 0..program_headers.len() {
             program_headers[i] = parse_program_header(&mut bytes).unwrap();
         }
-        pri(&mut lock, &format!("{0:#x?}", program_headers));
+        pri(&mut lock, &format!("{0:#x?}", program_headers), file!(), line!(), column!());
 
         let mut section_headers: Vec<SectionHeader> = 
             Vec::<SectionHeader>::with_capacity(elf_header.e_shnum as usize);
         section_headers.resize(elf_header.e_shnum as usize, SectionHeader::default());
         pri(&mut lock, &format!("program has: {:#x} Section Headers.",
-                                section_headers.len()));
+                                section_headers.len()), file!(), line!(), column!());
         let mut bytes: VecDeque<u8> = master_bytes.clone()
             .drain(elf_header.e_shoff as usize..).collect::<VecDeque<u8>>();
         
         for i in 0..section_headers.len() {
             section_headers[i] = parse_section_header(&mut bytes).unwrap();
         }
-        pri(&mut lock, &format!("{0:#x?}", section_headers));
+        pri(&mut lock, &format!("{0:#x?}", section_headers), file!(), line!(), column!());
         let str_header: SectionHeader = 
             section_headers[elf_header.e_shstrndx as usize].clone();
         let bytes: VecDeque<u8> = master_bytes.clone()
@@ -510,7 +503,7 @@ mod tests {
             section_headers_map.insert(get_str_from_index(&str_buff, h.sh_name as usize).unwrap(), h);
         }
         for h in section_headers_map.keys() {
-            pri(&lock, &format!("{} {:#x?}", h, section_headers_map.get(h).unwrap()));
+            pri(&lock, &format!("{} {:#x?}", h, section_headers_map.get(h).unwrap()), file!(), line!(), column!());
         }
 
     }
