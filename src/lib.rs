@@ -1,7 +1,70 @@
 #![feature(ascii_char)]
 #![allow(dead_code)]
 
+mod vec_deque_expansion {
+    use std::collections::VecDeque;
+    pub fn consume_u8(d: &mut VecDeque<u8>) -> Option<u8> {
+        if d.is_empty() {
+            return None;
+        }
+        let tmp: [u8; 1] = [
+            d.pop_front().unwrap()
+        ];
+        Some(u8::from_le_bytes(tmp))
+    }
+    pub fn consume_u16(d: &mut VecDeque<u8>) -> Option<u16> {
+        if d.len() < 2 {
+            return None;
+        }
+        let tmp: [u8; 2] = [
+            d.pop_front().unwrap(),
+            d.pop_front().unwrap()
+        ];
+        Some(u16::from_le_bytes(tmp))
+    }
+    pub fn consume_u32(d: &mut VecDeque<u8>) -> Option<u32> {
+        if d.len() < 4 {
+            return None;
+        }
+        let tmp: [u8; 4] = [
+            d.pop_front().unwrap(),
+            d.pop_front().unwrap(),
+            d.pop_front().unwrap(),
+            d.pop_front().unwrap()
+        ];
+        Some(u32::from_le_bytes(tmp))
+    }
+    pub fn consume_u64(d: &mut VecDeque<u8>) -> Option<u64> {
+        if d.len() < 8 {
+            return None;
+        }
+        let tmp: [u8; 8] = [
+            d.pop_front().unwrap(),
+            d.pop_front().unwrap(),
+            d.pop_front().unwrap(),
+            d.pop_front().unwrap(),
+            d.pop_front().unwrap(),
+            d.pop_front().unwrap(),
+            d.pop_front().unwrap(),
+            d.pop_front().unwrap()
+        ];
+        Some(u64::from_le_bytes(tmp))
+    }
+    pub fn consume_vec(d: &mut VecDeque<u8>, len: usize) -> Option<Vec<u8>>{
+        if d.len() < len {
+            return None;
+        }
+        let mut f: Vec<u8> = Vec::new();
+        for _ in 0..len {
+            f.push(d.pop_front().unwrap());
+        }
+        Some(f.clone())
+    }
+}
+
 mod elf{
+    use std::collections::VecDeque;
+    use crate::vec_deque_expansion::*;
     #[derive(Debug, Default, Clone)]
     #[repr(C)]
     pub struct ElfHeader{
@@ -294,69 +357,72 @@ mod elf{
         pub sh_entsize: u64,
 
     }
+
+    pub fn parse_elf_header(d: &mut VecDeque<u8>) -> Option<ElfHeader>{
+        if d.len() < (std::mem::size_of::<ElfHeader>()) {
+            return None;
+        }
+        Some(
+            ElfHeader{
+                e_ident_magic: consume_u32(d)?,
+                e_ident_class: consume_u8(d)?, 
+                e_ident_data: consume_u8(d)?,
+                e_ident_version: consume_u8(d)?,
+                e_ident_os_abi: consume_u8(d)?,
+                e_ident_abi_version: consume_u8(d)?,
+                e_ident_pad: consume_vec(d, 7)?.try_into().unwrap(),
+                e_type: consume_u16(d)?,
+                e_machine: consume_u16(d)?,
+                e_version: consume_u32(d)?,
+                e_entry: consume_u64(d)?,
+                e_phoff: consume_u64(d)?,
+                e_shoff: consume_u64(d)?,
+                e_flags: consume_u32(d)?,
+                e_ehsize: consume_u16(d)?,
+                e_phentsize: consume_u16(d)?,
+                e_phnum: consume_u16(d)?,
+                e_shentsize: consume_u16(d)?,
+                e_shnum: consume_u16(d)?,
+                e_shstrndx: consume_u16(d)?,
+            }
+        )
+    }
+
+    pub fn parse_program_header(d: &mut VecDeque<u8>) -> Option<ProgramHeader> {
+        Some(
+            ProgramHeader{
+                p_type: consume_u32(d)?,
+                p_flags: consume_u32(d)?,
+                p_offset: consume_u64(d)?,
+                p_vaddr: consume_u64(d)?,
+                p_paddr: consume_u64(d)?,
+                p_filesz: consume_u64(d)?,
+                p_memsz: consume_u64(d)?,
+                p_align: consume_u64(d)?,
+            }
+        )
+    }
+
+    pub fn parse_section_header(d: &mut VecDeque<u8>) -> Option<SectionHeader> {
+        Some(
+                SectionHeader{
+                    sh_name: consume_u32(d)?,
+                    sh_type: consume_u32(d)?,
+                    sh_flags: consume_u64(d)?,
+                    sh_addr: consume_u64(d)?,
+                    sh_offset: consume_u64(d)?,
+                    sh_size: consume_u64(d)?,
+                    sh_link: consume_u32(d)?,
+                    sh_info: consume_u32(d)?,
+                    sh_addralign: consume_u64(d)?,
+                    sh_entsize: consume_u64(d)?,
+                }
+            )
+
+    }
 }
 
 
-mod vec_deque_expansion {
-    use std::collections::VecDeque;
-    pub fn consume_u8(d: &mut VecDeque<u8>) -> Option<u8> {
-        if d.is_empty() {
-            return None;
-        }
-        let tmp: [u8; 1] = [
-            d.pop_front().unwrap()
-        ];
-        Some(u8::from_le_bytes(tmp))
-    }
-    pub fn consume_u16(d: &mut VecDeque<u8>) -> Option<u16> {
-        if d.len() < 2 {
-            return None;
-        }
-        let tmp: [u8; 2] = [
-            d.pop_front().unwrap(),
-            d.pop_front().unwrap()
-        ];
-        Some(u16::from_le_bytes(tmp))
-    }
-    pub fn consume_u32(d: &mut VecDeque<u8>) -> Option<u32> {
-        if d.len() < 4 {
-            return None;
-        }
-        let tmp: [u8; 4] = [
-            d.pop_front().unwrap(),
-            d.pop_front().unwrap(),
-            d.pop_front().unwrap(),
-            d.pop_front().unwrap()
-        ];
-        Some(u32::from_le_bytes(tmp))
-    }
-    pub fn consume_u64(d: &mut VecDeque<u8>) -> Option<u64> {
-        if d.len() < 8 {
-            return None;
-        }
-        let tmp: [u8; 8] = [
-            d.pop_front().unwrap(),
-            d.pop_front().unwrap(),
-            d.pop_front().unwrap(),
-            d.pop_front().unwrap(),
-            d.pop_front().unwrap(),
-            d.pop_front().unwrap(),
-            d.pop_front().unwrap(),
-            d.pop_front().unwrap()
-        ];
-        Some(u64::from_le_bytes(tmp))
-    }
-    pub fn consume_vec(d: &mut VecDeque<u8>, len: usize) -> Option<Vec<u8>>{
-        if d.len() < len {
-            return None;
-        }
-        let mut f: Vec<u8> = Vec::new();
-        for _ in 0..len {
-            f.push(d.pop_front().unwrap());
-        }
-        Some(f.clone())
-    }
-}
 
 #[cfg(test)]
 mod tests {
@@ -391,7 +457,7 @@ mod tests {
 
 
     #[test]
-    fn load() {
+    fn parse() {
         let mut lock = std::io::stdout();
         let mut f: File = File::open("/bin/bash").unwrap();
         let metadata: Metadata = f.metadata().unwrap();
@@ -403,28 +469,7 @@ mod tests {
         let mut bytes: VecDeque<u8> = VecDeque::<u8>::from(master_bytes.clone());
 		
         pri(&mut lock, &format!("Successfully read {} bytes!", bin_size));
-        let elf_header: ElfHeader = ElfHeader{
-            e_ident_magic: consume_u32(&mut bytes).unwrap(),
-            e_ident_class: consume_u8(&mut bytes).unwrap(), 
-            e_ident_data: consume_u8(&mut bytes).unwrap(),
-            e_ident_version: consume_u8(&mut bytes).unwrap(),
-            e_ident_os_abi: consume_u8(&mut bytes).unwrap(),
-            e_ident_abi_version: consume_u8(&mut bytes).unwrap(),
-            e_ident_pad: consume_vec(&mut bytes, 7).unwrap().try_into().unwrap(),
-            e_type: consume_u16(&mut bytes).unwrap(),
-            e_machine: consume_u16(&mut bytes).unwrap(),
-            e_version: consume_u32(&mut bytes).unwrap(),
-            e_entry: consume_u64(&mut bytes).unwrap(),
-            e_phoff: consume_u64(&mut bytes).unwrap(),
-            e_shoff: consume_u64(&mut bytes).unwrap(),
-            e_flags: consume_u32(&mut bytes).unwrap(),
-            e_ehsize: consume_u16(&mut bytes).unwrap(),
-            e_phentsize: consume_u16(&mut bytes).unwrap(),
-            e_phnum: consume_u16(&mut bytes).unwrap(),
-            e_shentsize: consume_u16(&mut bytes).unwrap(),
-            e_shnum: consume_u16(&mut bytes).unwrap(),
-            e_shstrndx: consume_u16(&mut bytes).unwrap(),
-         };
+        let elf_header: ElfHeader = parse_elf_header(&mut bytes).unwrap(); 
         pri(&mut lock, &format!("{0:#x?}", elf_header));
         let mut program_headers: Vec<ProgramHeader> = 
             Vec::<ProgramHeader>::with_capacity(elf_header.e_phnum as usize);
@@ -434,16 +479,7 @@ mod tests {
         let mut bytes: VecDeque<u8> = master_bytes.clone()
             .drain(elf_header.e_phoff as usize..).collect::<VecDeque<u8>>();
         for i in 0..program_headers.len() {
-            program_headers[i] = ProgramHeader{
-                p_type: consume_u32(&mut bytes).unwrap(),
-                p_flags: consume_u32(&mut bytes).unwrap(),
-                p_offset: consume_u64(&mut bytes).unwrap(),
-                p_vaddr: consume_u64(&mut bytes).unwrap(),
-                p_paddr: consume_u64(&mut bytes).unwrap(),
-                p_filesz: consume_u64(&mut bytes).unwrap(),
-                p_memsz: consume_u64(&mut bytes).unwrap(),
-                p_align: consume_u64(&mut bytes).unwrap(),
-            }
+            program_headers[i] = parse_program_header(&mut bytes).unwrap();
         }
         pri(&mut lock, &format!("{0:#x?}", program_headers));
 
@@ -456,18 +492,7 @@ mod tests {
             .drain(elf_header.e_shoff as usize..).collect::<VecDeque<u8>>();
         
         for i in 0..section_headers.len() {
-            section_headers[i] = SectionHeader{
-                sh_name: consume_u32(&mut bytes).unwrap(),
-                sh_type: consume_u32(&mut bytes).unwrap(),
-                sh_flags: consume_u64(&mut bytes).unwrap(),
-                sh_addr: consume_u64(&mut bytes).unwrap(),
-                sh_offset: consume_u64(&mut bytes).unwrap(),
-                sh_size: consume_u64(&mut bytes).unwrap(),
-                sh_link: consume_u32(&mut bytes).unwrap(),
-                sh_info: consume_u32(&mut bytes).unwrap(),
-                sh_addralign: consume_u64(&mut bytes).unwrap(),
-                sh_entsize: consume_u64(&mut bytes).unwrap(),
-            }
+            section_headers[i] = parse_section_header(&mut bytes).unwrap();
         }
         pri(&mut lock, &format!("{0:#x?}", section_headers));
         let str_header: SectionHeader = 
