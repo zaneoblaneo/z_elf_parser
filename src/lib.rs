@@ -1,7 +1,7 @@
 #![feature(ascii_char)]
 #![allow(dead_code)]
 
-mod vec_deque_expansion {
+pub mod vec_deque_expansion {
     use std::collections::VecDeque;
     pub fn consume_u8(d: &mut VecDeque<u8>) -> Option<u8> {
         if d.is_empty() {
@@ -62,7 +62,7 @@ mod vec_deque_expansion {
     }
 }
 
-mod elf{
+pub mod elf{
     use std::collections::VecDeque;
     use crate::vec_deque_expansion::*;
     #[derive(Debug, Default, Clone)]
