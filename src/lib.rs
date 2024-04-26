@@ -7,19 +7,14 @@ pub mod vec_deque_expansion {
         if d.is_empty() {
             return None;
         }
-        let tmp: [u8; 1] = [
-            d.pop_front().unwrap()
-        ];
+        let tmp: [u8; 1] = [d.pop_front().unwrap()];
         Some(u8::from_le_bytes(tmp))
     }
     pub fn consume_u16(d: &mut VecDeque<u8>) -> Option<u16> {
         if d.len() < 2 {
             return None;
         }
-        let tmp: [u8; 2] = [
-            d.pop_front().unwrap(),
-            d.pop_front().unwrap()
-        ];
+        let tmp: [u8; 2] = [d.pop_front().unwrap(), d.pop_front().unwrap()];
         Some(u16::from_le_bytes(tmp))
     }
     pub fn consume_u32(d: &mut VecDeque<u8>) -> Option<u32> {
@@ -30,7 +25,7 @@ pub mod vec_deque_expansion {
             d.pop_front().unwrap(),
             d.pop_front().unwrap(),
             d.pop_front().unwrap(),
-            d.pop_front().unwrap()
+            d.pop_front().unwrap(),
         ];
         Some(u32::from_le_bytes(tmp))
     }
@@ -46,11 +41,11 @@ pub mod vec_deque_expansion {
             d.pop_front().unwrap(),
             d.pop_front().unwrap(),
             d.pop_front().unwrap(),
-            d.pop_front().unwrap()
+            d.pop_front().unwrap(),
         ];
         Some(u64::from_le_bytes(tmp))
     }
-    pub fn consume_vec(d: &mut VecDeque<u8>, len: usize) -> Option<Vec<u8>>{
+    pub fn consume_vec(d: &mut VecDeque<u8>, len: usize) -> Option<Vec<u8>> {
         if d.len() < len {
             return None;
         }
@@ -62,17 +57,17 @@ pub mod vec_deque_expansion {
     }
 }
 
-pub mod elf{
-    use std::collections::VecDeque;
+pub mod elf {
     use crate::vec_deque_expansion::*;
+    use std::collections::VecDeque;
     #[derive(Debug, Default, Clone)]
     #[repr(C)]
-    pub struct ElfHeader{
+    pub struct ElfHeader {
         /// a 4-byte magic number that should be equal to [0x7f, 'E', 'L', 'F']
         pub e_ident_magic: u32,
 
-        /// a 1-byte field that indicates the machine type since we only support
-        /// 64-bit, anything that's 32-bit should die.
+        /// a 1-byte field that indicates the machine type since 
+        /// we only support 64-bit, anything that's 32-bit should die.
         /// 1 | 32-bit
         /// 2 | 64-bit
         pub e_ident_class: u8,
@@ -120,8 +115,10 @@ pub mod elf{
         /// 0x0004 | ET_CORE   | Core file
         /// 0xFE00 | ET_LOOS   | Reserved inclusive range start OS Specific
         /// 0xFEFF | ET_HIOS   | Reserved inclusive range end OS Specific
-        /// 0xFF00 | ET_LOPROC | Reserved inclusive range start Processor Specific
-        /// 0xFFFF | ET_HIPROC | Reserved inclusive range end Processor Specific
+        /// 0xFF00 | ET_LOPROC | Reserved inclusive range start 
+        ///                    |   Processor Specific
+        /// 0xFFFF | ET_HIPROC | Reserved inclusive range end 
+        ///                    |   Processor Specific
         pub e_type: u16,
 
         /// machine type
@@ -196,11 +193,11 @@ pub mod elf{
         /// 0xF7        | Berkeley Packet Filter
         /// 0x101       | WDC 65C816
         pub e_machine: u16,
-        
+
         /// set to 1 for original version of elf
         pub e_version: u32,
-        
-        /// Entry point of the elf. It the elf shouldn't have an entry point, 
+
+        /// Entry point of the elf. It the elf shouldn't have an entry point,
         /// this field holds `0x0000000000000000`
         pub e_entry: u64,
 
@@ -230,14 +227,14 @@ pub mod elf{
         /// Contains the number of entries in the section header table.
         pub e_shnum: u16,
 
-        /// Contains index of the section header table entry that contains the 
+        /// Contains index of the section header table entry that contains the
         /// section names.
         pub e_shstrndx: u16,
     }
 
     #[derive(Debug, Default, Clone)]
     #[repr(C)]
-    pub struct ProgramHeader{
+    pub struct ProgramHeader {
         /// Identifies the type of the segment.
         /// 0x00000000  | PT_NULL    | Program header table entry unused.
         /// 0x00000001  | PT_LOAD    | Loadable segment.
@@ -249,8 +246,10 @@ pub mod elf{
         /// 0x00000007  | PT_TLS     | Thread-Local Storage template.
         /// 0x60000000  | PT_LOOS    | Start of reserved range. OS specific.
         /// 0x6FFFFFFF  | PT_HIOS    | End of reserved range. OS specific.
-        /// 0x70000000  | PT_LOPROC  | Start of reserved range. Processor specific.
-        /// 0x7FFFFFFF  | PT_HIPROC  | End of reserved range. Processor specific.
+        /// 0x70000000  | PT_LOPROC  | Start of reserved range.
+        ///                          |   Processor specific.
+        /// 0x7FFFFFFF  | PT_HIPROC  | End of reserved range.
+        ///                          |   Processor specific.
         pub p_type: u32,
 
         /// Segment-dependent flags (position for 64-bit structure).
@@ -265,7 +264,7 @@ pub mod elf{
         /// Virtual address of the segment in memory.
         pub p_vaddr: u64,
 
-        /// On systems where physical address is relevant, reserved for 
+        /// On systems where physical address is relevant, reserved for
         /// segment's physical address.
         pub p_paddr: u64,
 
@@ -283,8 +282,8 @@ pub mod elf{
 
     #[derive(Debug, Default, Clone)]
     #[repr(C)]
-    pub struct SectionHeader{
-        /// An offset to a string in the .shstrtab section that represents the 
+    pub struct SectionHeader {
+        /// An offset to a string in the .shstrtab section that represents the
         /// name of this section.
         pub sh_name: u32,
 
@@ -313,25 +312,29 @@ pub mod elf{
 
         /// Identifies the attributes of the section.
         /// 0x1        | SHF_WRITE            | Writable
-        /// 0x2        | SHF_ALLOC            | Occupies memory during execution
+        /// 0x2        | SHF_ALLOC            | Occupies memory during
+        ///                                   |   execution
         /// 0x4        | SHF_EXECINSTR        | Executable
         /// 0x10       | SHF_MERGE            | Might be merged
-        /// 0x20       | SHF_STRINGS          | Contains null-terminated strings
+        /// 0x20       | SHF_STRINGS          | Contains null-terminated
+        ///                                   |   strings
         /// 0x40       | SHF_INFO_LINK        | 'sh_info' contains SHT index
         /// 0x80       | SHF_LINK_ORDER       | Preserve order after combining
-        /// 0x100      | SHF_OS_NONCONFORMING | Non-standard OS specific 
+        /// 0x100      | SHF_OS_NONCONFORMING | Non-standard OS specific
         ///                                   | handling required
         /// 0x200      | SHF_GROUP            | Section is member of a group
         /// 0x400      | SHF_TLS              | Section hold thread-local data
         /// 0x0FF00000 | SHF_MASKOS           | OS-specific
         /// 0xF0000000 | SHF_MASKPROC         | Processor-specific
-        /// 0x4000000  | SHF_ORDERED          | Special ordering requirement 
+        /// 0x4000000  | SHF_ORDERED          | Special ordering requirement
         ///                                   | (Solaris)
-        /// 0x8000000  | SHF_EXCLUDE          | Section is excluded unless 
-        ///                                   | referenced or allocated (Solaris)
+        /// 0x8000000  | SHF_EXCLUDE          | Section is excluded unless
+        ///                                   | referenced or allocated
+        ///                                   |   (Solaris)
         pub sh_flags: u64,
 
-        /// Virtual address of the section in memory, for sections that are loaded.
+        /// Virtual address of the section in memory, for sections
+        /// that are loaded.
         pub sh_addr: u64,
 
         /// Offset of the section in the file image.
@@ -348,94 +351,85 @@ pub mod elf{
         /// for several purposes depending on the type of section.
         pub sh_info: u32,
 
-        /// Contians the required alignment of the section. This field must be a
-        /// power of two.
+        /// Contians the required alignment of the section. This field must be
+        /// a power of two.
         pub sh_addralign: u64,
 
-        /// Contains the size, in bytes, of each entry, for sections that contain
-        /// fixed-size entries. Otherwise, this field contains `0x0000000000000000`
+        /// Contains the size, in bytes, of each entry, for sections that
+        /// contain fixed-size entries. Otherwise, this field contains
+        /// `0x0000000000000000`
         pub sh_entsize: u64,
-
     }
 
-    pub fn parse_elf_header(d: &mut VecDeque<u8>) -> Option<ElfHeader>{
+    pub fn parse_elf_header(d: &mut VecDeque<u8>) -> Option<ElfHeader> {
         if d.len() < (std::mem::size_of::<ElfHeader>()) {
             return None;
         }
-        Some(
-            ElfHeader{
-                e_ident_magic: consume_u32(d)?,
-                e_ident_class: consume_u8(d)?, 
-                e_ident_data: consume_u8(d)?,
-                e_ident_version: consume_u8(d)?,
-                e_ident_os_abi: consume_u8(d)?,
-                e_ident_abi_version: consume_u8(d)?,
-                e_ident_pad: consume_vec(d, 7)?.try_into().unwrap(),
-                e_type: consume_u16(d)?,
-                e_machine: consume_u16(d)?,
-                e_version: consume_u32(d)?,
-                e_entry: consume_u64(d)?,
-                e_phoff: consume_u64(d)?,
-                e_shoff: consume_u64(d)?,
-                e_flags: consume_u32(d)?,
-                e_ehsize: consume_u16(d)?,
-                e_phentsize: consume_u16(d)?,
-                e_phnum: consume_u16(d)?,
-                e_shentsize: consume_u16(d)?,
-                e_shnum: consume_u16(d)?,
-                e_shstrndx: consume_u16(d)?,
-            }
-        )
+        Some(ElfHeader {
+            e_ident_magic: consume_u32(d)?,
+            e_ident_class: consume_u8(d)?,
+            e_ident_data: consume_u8(d)?,
+            e_ident_version: consume_u8(d)?,
+            e_ident_os_abi: consume_u8(d)?,
+            e_ident_abi_version: consume_u8(d)?,
+            e_ident_pad: consume_vec(d, 7)?.try_into().unwrap(),
+            e_type: consume_u16(d)?,
+            e_machine: consume_u16(d)?,
+            e_version: consume_u32(d)?,
+            e_entry: consume_u64(d)?,
+            e_phoff: consume_u64(d)?,
+            e_shoff: consume_u64(d)?,
+            e_flags: consume_u32(d)?,
+            e_ehsize: consume_u16(d)?,
+            e_phentsize: consume_u16(d)?,
+            e_phnum: consume_u16(d)?,
+            e_shentsize: consume_u16(d)?,
+            e_shnum: consume_u16(d)?,
+            e_shstrndx: consume_u16(d)?,
+        })
     }
 
     pub fn parse_program_header(d: &mut VecDeque<u8>) -> Option<ProgramHeader> {
-        Some(
-            ProgramHeader{
-                p_type: consume_u32(d)?,
-                p_flags: consume_u32(d)?,
-                p_offset: consume_u64(d)?,
-                p_vaddr: consume_u64(d)?,
-                p_paddr: consume_u64(d)?,
-                p_filesz: consume_u64(d)?,
-                p_memsz: consume_u64(d)?,
-                p_align: consume_u64(d)?,
-            }
-        )
+        Some(ProgramHeader {
+            p_type: consume_u32(d)?,
+            p_flags: consume_u32(d)?,
+            p_offset: consume_u64(d)?,
+            p_vaddr: consume_u64(d)?,
+            p_paddr: consume_u64(d)?,
+            p_filesz: consume_u64(d)?,
+            p_memsz: consume_u64(d)?,
+            p_align: consume_u64(d)?,
+        })
     }
 
     pub fn parse_section_header(d: &mut VecDeque<u8>) -> Option<SectionHeader> {
-        Some(
-                SectionHeader{
-                    sh_name: consume_u32(d)?,
-                    sh_type: consume_u32(d)?,
-                    sh_flags: consume_u64(d)?,
-                    sh_addr: consume_u64(d)?,
-                    sh_offset: consume_u64(d)?,
-                    sh_size: consume_u64(d)?,
-                    sh_link: consume_u32(d)?,
-                    sh_info: consume_u32(d)?,
-                    sh_addralign: consume_u64(d)?,
-                    sh_entsize: consume_u64(d)?,
-                }
-            )
-
+        Some(SectionHeader {
+            sh_name: consume_u32(d)?,
+            sh_type: consume_u32(d)?,
+            sh_flags: consume_u64(d)?,
+            sh_addr: consume_u64(d)?,
+            sh_offset: consume_u64(d)?,
+            sh_size: consume_u64(d)?,
+            sh_link: consume_u32(d)?,
+            sh_info: consume_u32(d)?,
+            sh_addralign: consume_u64(d)?,
+            sh_entsize: consume_u64(d)?,
+        })
     }
 }
 
-
-
 #[cfg(test)]
 mod tests {
-    use std::io::{Write, Read, Stdout};
-    use std::fs::{File, Metadata};
-    use std::collections::{VecDeque, HashMap};
     use crate::elf::*;
+    use std::collections::{HashMap, VecDeque};
+    use std::fs::{File, Metadata};
+    use std::io::{Read, Stdout, Write};
     pub fn pri(mut stdout: &Stdout, s: &str, f: &str, l: u32, c: u32) {
         let out = format!("  {}:{}:{} :: [+] : {}", f, l, c, s);
         let _ = writeln!(stdout, "{}", out.clone());
     }
 
-    fn get_str_from_index(d: &[u8], indx: usize) -> Option<&str>{
+    fn get_str_from_index(d: &[u8], indx: usize) -> Option<&str> {
         if indx > d.len() {
             return None;
         }
@@ -449,48 +443,84 @@ mod tests {
         Some(d[indx..j].as_ascii()?.as_str())
     }
 
-
     #[test]
     fn parse() {
         let mut lock = std::io::stdout();
         let mut f: File = File::open("/bin/bash").unwrap();
         let metadata: Metadata = f.metadata().unwrap();
-        let mut master_bytes: Vec<u8> = 
-            Vec::<u8>::with_capacity(metadata.len() as usize);
+        let mut master_bytes: Vec<u8> = Vec::<u8>::with_capacity(metadata.len() as usize);
         master_bytes.resize(metadata.len() as usize, 0);
-        let bin_size: usize = f.read(&mut master_bytes)
-            .map_err(|_x| usize::MAX).unwrap();
+        let bin_size: usize = f.read(&mut master_bytes).map_err(|_x| usize::MAX).unwrap();
         let mut bytes: VecDeque<u8> = VecDeque::<u8>::from(master_bytes.clone());
-		
-        pri(&mut lock, &format!("Successfully read {} bytes!", bin_size), file!(), line!(), column!());
-        let elf_header: ElfHeader = parse_elf_header(&mut bytes).unwrap(); 
-        pri(&mut lock, &format!("{0:#x?}", elf_header), file!(), line!(), column!());
-        let mut program_headers: Vec<ProgramHeader> = 
+
+        pri(
+            &mut lock,
+            &format!("Successfully read {} bytes!", bin_size),
+            file!(),
+            line!(),
+            column!(),
+        );
+        let elf_header: ElfHeader = parse_elf_header(&mut bytes).unwrap();
+        pri(
+            &mut lock,
+            &format!("{0:#x?}", elf_header),
+            file!(),
+            line!(),
+            column!(),
+        );
+        let mut program_headers: Vec<ProgramHeader> =
             Vec::<ProgramHeader>::with_capacity(elf_header.e_phnum as usize);
         program_headers.resize(elf_header.e_phnum as usize, ProgramHeader::default());
-        pri(&mut lock, &format!("program has: {:#x} Program Headers.", program_headers.len()), file!(), line!(), column!());
-        let mut bytes: VecDeque<u8> = master_bytes.clone()
-            .drain(elf_header.e_phoff as usize..).collect::<VecDeque<u8>>();
+        pri(
+            &mut lock,
+            &format!("program has: {:#x} Program Headers.", program_headers.len()),
+            file!(),
+            line!(),
+            column!(),
+        );
+        let mut bytes: VecDeque<u8> = master_bytes
+            .clone()
+            .drain(elf_header.e_phoff as usize..)
+            .collect::<VecDeque<u8>>();
         for i in 0..program_headers.len() {
             program_headers[i] = parse_program_header(&mut bytes).unwrap();
         }
-        pri(&mut lock, &format!("{0:#x?}", program_headers), file!(), line!(), column!());
+        pri(
+            &mut lock,
+            &format!("{0:#x?}", program_headers),
+            file!(),
+            line!(),
+            column!(),
+        );
 
-        let mut section_headers: Vec<SectionHeader> = 
+        let mut section_headers: Vec<SectionHeader> =
             Vec::<SectionHeader>::with_capacity(elf_header.e_shnum as usize);
         section_headers.resize(elf_header.e_shnum as usize, SectionHeader::default());
-        pri(&mut lock, &format!("program has: {:#x} Section Headers.",
-                                section_headers.len()), file!(), line!(), column!());
-        let mut bytes: VecDeque<u8> = master_bytes.clone()
-            .drain(elf_header.e_shoff as usize..).collect::<VecDeque<u8>>();
-        
+        pri(
+            &mut lock,
+            &format!("program has: {:#x} Section Headers.", section_headers.len()),
+            file!(),
+            line!(),
+            column!(),
+        );
+        let mut bytes: VecDeque<u8> = master_bytes
+            .clone()
+            .drain(elf_header.e_shoff as usize..)
+            .collect::<VecDeque<u8>>();
+
         for i in 0..section_headers.len() {
             section_headers[i] = parse_section_header(&mut bytes).unwrap();
         }
-        pri(&mut lock, &format!("{0:#x?}", section_headers), file!(), line!(), column!());
-        let str_header: SectionHeader = 
-            section_headers[elf_header.e_shstrndx as usize].clone();
-        let bytes: VecDeque<u8> = master_bytes.clone()
+        pri(
+            &mut lock,
+            &format!("{0:#x?}", section_headers),
+            file!(),
+            line!(),
+            column!(),
+        );
+        let str_header: SectionHeader = section_headers[elf_header.e_shstrndx as usize].clone();
+        let bytes: VecDeque<u8> = master_bytes
+            .clone()
             .drain(str_header.sh_offset as usize..)
             .collect::<VecDeque<u8>>();
         let mut str_buff: Vec<u8> = Vec::<u8>::with_capacity(str_header.sh_size as usize);
@@ -498,13 +528,22 @@ mod tests {
         for i in 0..str_buff.len() {
             str_buff[i] = bytes[i];
         }
-        let mut section_headers_map: HashMap<&str, SectionHeader> = HashMap::<&str, SectionHeader>::new();
+        let mut section_headers_map: HashMap<&str, SectionHeader> =
+            HashMap::<&str, SectionHeader>::new();
         for h in section_headers {
-            section_headers_map.insert(get_str_from_index(&str_buff, h.sh_name as usize).unwrap(), h);
+            section_headers_map.insert(
+                get_str_from_index(&str_buff, h.sh_name as usize).unwrap(),
+                h,
+            );
         }
         for h in section_headers_map.keys() {
-            pri(&lock, &format!("{} {:#x?}", h, section_headers_map.get(h).unwrap()), file!(), line!(), column!());
+            pri(
+                &lock,
+                &format!("{} {:#x?}", h, section_headers_map.get(h).unwrap()),
+                file!(),
+                line!(),
+                column!(),
+            );
         }
-
     }
 }
